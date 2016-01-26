@@ -1,0 +1,137 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
+  require_chef_omnibus: 12.5.1
+  environments_path: ./test/environments
+  data_bags_path: ./test/data_bags
+  client_rb:
+    environment: kitchen
+
+platforms:
+  - name: centos67
+    driver_config:
+      box: boxcutter/centos67
+    attributes:
+      system:
+        primary_interface: eth1
+      masala_keepalived:
+        vi_1:
+          interface: eth1
+        vi_2:
+          interface: eth2
+  - name: centos71
+    driver_config:
+      box: boxcutter/centos71
+    attributes:
+      system:
+        primary_interface: enp0s8
+      masala_keepalived:
+        vi_1:
+          interface: enp0s8
+        vi_2:
+          interface: enp0s9
+  - name: centos72
+    driver_config:
+      box: boxcutter/centos72
+    attributes:
+      system:
+        primary_interface: enp0s8
+      masala_keepalived:
+        vi_1:
+          interface: enp0s8
+        vi_2:
+          interface: enp0s9
+  - name: ubuntu1404
+    driver_config:
+      box: boxcutter/ubuntu1404
+    attributes:
+      system:
+        primary_interface: eth1
+      masala_keepalived:
+        vi_1:
+          interface: eth1
+        vi_2:
+          interface: eth2
+  - name: ubuntu1504
+    driver_config:
+      box: boxcutter/ubuntu1504
+    attributes:
+      system:
+        primary_interface: eth1
+      masala_keepalived:
+        vi_1:
+          interface: eth1
+        vi_2:
+          interface: eth2
+  - name: debian82
+    driver_config:
+      box: boxcutter/debian82
+    attributes:
+      system:
+        primary_interface: eth1
+      masala_keepalived:
+        vi_1:
+          interface: eth1
+        vi_2:
+          interface: eth2
+
+suites:
+  - name: primary
+    run_list: ["recipe[masala_keepalived]", "recipe[masala_ldap::master]"]
+    driver:
+      #vm_hostname: false
+      network:
+      - ["private_network", {ip: "10.10.10.11"}]
+      - ["private_network", {ip: "10.10.20.11"}]
+      customize:
+        memory: 512
+        cpus: 1
+    attributes:
+      system:
+        short_hostname: 'primary'
+      openldap:
+        slapd_master: 10.10.10.11
+      masala_keepalived:
+        name: ka-primary
+        state: 'MASTER'
+        priority: 101
+        auth_pass: 'abc123'
+        vi_1:
+          virtual_router_id: 30
+          vip: '10.10.10.20'
+          peer: '10.10.10.12'
+        vi_2:
+          virtual_router_id: 31
+          vip: '10.10.20.20'
+          peer: '10.10.20.12'
+  - name: backup
+    run_list: ["recipe[masala_keepalived]", "recipe[masala_ldap::slave]"]
+    driver:
+      #vm_hostname: false
+      network:
+      - ["private_network", {ip: "10.10.10.12"}]
+      - ["private_network", {ip: "10.10.20.12"}]
+      customize:
+        memory: 512
+        cpus: 1
+    attributes:
+      system:
+        short_hostname: 'backup'
+      openldap:
+        slapd_master: 10.10.10.11
+      masala_keepalived:
+        name: ka-backup
+        state: 'BACKUP'
+        priority: 100
+        auth_pass: 'abc123'
+        vi_1:
+          virtual_router_id: 30
+          vip: '10.10.10.20'
+          peer: '10.10.10.11'
+        vi_2:
+          virtual_router_id: 31
+          vip: '10.10.20.20'
+          peer: '10.10.20.11'

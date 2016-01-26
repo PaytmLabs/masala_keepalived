@@ -1,0 +1,63 @@
+{
+  "name":         "kitchen",
+  "description":  "Kitchen Cookbook Test Environment",
+  "json_class":   "Chef::Environment",
+  "chef_type":    "environment",
+
+  "default_attributes": {
+    "masala_base": {
+      "upgrade_ixgbevf": false,
+      "dd_enable": true,
+      "enable_sssd_ldap": true,
+      "admin": {
+        "user": "kitchen",
+        "group": "kitchen",
+        "ssh_pubkey": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"
+      }
+    },
+    // locale disabled for now
+    //"locale": {
+    //  "lang":   "en_US.utf8",
+    //  "lc_all": "en_US.utf8"
+    //},
+    "system": {
+      "domain_name": "kitchen.masalatest.com",
+      "upgrade_packages": "true",
+      "primary_interface": "eth1"
+    },
+    "ntp": {
+      "servers": ["0.pool.ntp.org", "1.pool.ntp.org"]
+    },
+    "openldap": {
+      "basedn": "dc=masalatest,dc=com",
+      "rootpw": "{SSHA}ga4ROYIW/lrpyaNCJ2tJp+3UHg8Tq6eU",
+      "server": "localhost",
+      "tls_enabled": false,
+      "tls_checkpeer": false,
+      "slapd_replpw": "my_repl_pw",
+      "syncrepl_filter": "(objectClass=*)",
+      "syncrepl_use_tls": "no",
+      "syncrepl_dn": "cn=syncrole,dc=masalatest,dc=com"
+    },
+    "masala_ldap": {
+      "rootpw_clear": "devuser"
+    },
+    "java": {
+      "install_flavor": "oracle",
+      "jdk_version": "8",
+      "oracle": {
+        "accept_oracle_download_terms": true
+      }
+    },
+    "cassandra": {
+      "install_java": false,
+      "cluster_name": "kitchen_test",
+      "seeds": "10.10.10.11"
+    },
+    "kafka": {
+      "env_vars": {
+         "KAFKA_HEAP_OPTS": "\"-Xmx512M -Xms512M\""
+      }
+    }
+  }
+}
