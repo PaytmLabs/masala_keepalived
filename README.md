@@ -16,7 +16,7 @@ The platforms supported are:
 
 ## Attributes
 
-Please also see the documentation for the cookbooks included by masala_base. (See [metadata.rb](https://github.com/PaytmLabs/masala_base/blob/develop/metadata.rb) file)
+Please also see the documentation for the cookbooks included by masala_keepalived. (See [metadata.rb](https://github.com/PaytmLabs/masala_keepalived/blob/develop/metadata.rb) file)
 
 <table>
   <tr>
