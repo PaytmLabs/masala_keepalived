@@ -54,6 +54,16 @@ if ! node['masala_keepalived']['vi_2'].nil?
   node.default['keepalived']['instances']['vi_2']['ip_addresses'] = node['masala_keepalived']['vi_2']['vip']
   node.default['keepalived']['instances']['vi_2']['unicast_peer'] = [ node['masala_keepalived']['vi_2']['peer'] ]
   node.default['keepalived']['instances']['vi_2']['track_script'] = node['masala_keepalived']['vi_2']['track_script']
+
+  # Also create a VRRP sync group encapsulating both interfaces
+  #node.default['keepalived']['sync_groups']['vg_1']['instances'] = ['vi_1', 'vi_2']
+  #node.default['keepalived']['sync_groups']['vg_1']['options'] = ['global_tracking']
+  node.default['keepalived']['sync_groups'] = {
+    'vg_1' => {
+      'instances' => ['vi_1', 'vi_2'],
+      'options' => ['global_tracking']
+    }
+  }
 end
 
 # add helper for aws case to config (installed below)
@@ -71,9 +81,6 @@ if node['masala_keepalived']['aws']
   end
 end
 
-include_recipe 'masala_base::default'
-include_recipe 'keepalived::default'
-
 if node['masala_keepalived']['aws']
   cookbook_file '/etc/keepalived/master-aws.sh' do
     source 'master-aws.sh'
@@ -84,4 +91,7 @@ if node['masala_keepalived']['aws']
     notifies :restart, "service[keepalived]"
   end
 end
+
+include_recipe 'masala_base::default'
+include_recipe 'keepalived::default'
 
