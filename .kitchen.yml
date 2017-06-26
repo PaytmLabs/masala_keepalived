@@ -38,12 +38,12 @@ platforms:
       box: boxcutter/centos72
     attributes:
       system:
-        primary_interface: enp0s8
+        primary_interface: eth1
       masala_keepalived:
         vi_1:
-          interface: enp0s8
+          interface: eth1
         vi_2:
-          interface: enp0s9
+          interface: eth2
   - name: ubuntu1404
     driver_config:
       box: boxcutter/ubuntu1404
