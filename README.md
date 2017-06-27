@@ -12,7 +12,9 @@ recipe might use to add support for itself to run in an active/standby HA config
 The platforms supported are:
 - Centos 6.7+ / Centos 7.1+
 - Ubuntu 14.04 LTS (And future LTS releases)
-- Debioan 8.2+
+- Debian 8.2+
+
+Only Centos versions see active support and testing at this time.
 
 ## Attributes
 

@@ -25,3 +25,9 @@ default['keepalived']['check_scripts']['chk_init']['script'] = 'killall -0 init'
 default['keepalived']['check_scripts']['chk_init']['interval'] = 2
 default['keepalived']['check_scripts']['chk_init']['weight'] = 2
 
+# defaults for enabling snmpd integration for keepalived
+default['keepalived']['env_options'] = "-D -x"
+default['snmp']['additional_oids'] = ['.1.3.6.1.4.1.9586.100.5']
+default['snmp']['enable_agentx'] = true
+
+

@@ -93,5 +93,6 @@ if node['masala_keepalived']['aws']
 end
 
 include_recipe 'masala_base::default'
+include_recipe 'masala_snmpd::default'
 include_recipe 'keepalived::default'
 
