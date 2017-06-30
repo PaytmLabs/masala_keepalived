@@ -95,4 +95,5 @@ end
 include_recipe 'masala_base::default'
 include_recipe 'masala_snmpd::default'
 include_recipe 'keepalived::default'
+include_recipe 'masala_keepalived::datadog'
 
