@@ -56,11 +56,17 @@ if ! node['masala_keepalived']['vi_2'].nil?
   node.default['keepalived']['instances']['vi_2']['track_script'] = node['masala_keepalived']['vi_2']['track_script']
 
   # Also create a VRRP sync group encapsulating both interfaces
-  #node.default['keepalived']['sync_groups']['vg_1']['instances'] = ['vi_1', 'vi_2']
-  #node.default['keepalived']['sync_groups']['vg_1']['options'] = ['global_tracking']
   node.default['keepalived']['sync_groups'] = {
     'vg_1' => {
       'instances' => ['vi_1', 'vi_2'],
+      'options' => ['global_tracking']
+    }
+  }
+else
+  # for since interface, still create a sync group of the one interface
+  node.default['keepalived']['sync_groups'] = {
+    'vg_1' => {
+      'instances' => ['vi_1'],
       'options' => ['global_tracking']
     }
   }
