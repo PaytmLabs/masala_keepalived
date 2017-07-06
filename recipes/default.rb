@@ -25,68 +25,55 @@ primary_ip = primary_addrs_ipv4.keys.first
 # we only use the instance_defaults, not the built-in multi-node vars
 node.default['keepalived']['global']['router_id'] = node['masala_keepalived']['name']
 
-# the following attributes are made to be consistent for all instances within
-node.default['keepalived']['instances']['vi_1']['state'] = node['masala_keepalived']['state']
-node.default['keepalived']['instances']['vi_1']['priority'] = node['masala_keepalived']['priority']
-node.default['keepalived']['instances']['vi_1']['advert_int'] = node['masala_keepalived']['advert_int']
-node.default['keepalived']['instances']['vi_1']['nopreempt'] = node['masala_keepalived']['nopreempt']
-node.default['keepalived']['instances']['vi_1']['auth_type'] = node['masala_keepalived']['auth_type']
-node.default['keepalived']['instances']['vi_1']['auth_pass'] = node['masala_keepalived']['auth_pass']
-# the rest vary per instance
-node.default['keepalived']['instances']['vi_1']['virtual_router_id'] = node['masala_keepalived']['vi_1']['virtual_router_id']
-node.default['keepalived']['instances']['vi_1']['interface'] = node['masala_keepalived']['vi_1']['interface']
-node.default['keepalived']['instances']['vi_1']['ip_addresses'] = node['masala_keepalived']['vi_1']['vip']
-node.default['keepalived']['instances']['vi_1']['unicast_peer'] = [ node['masala_keepalived']['vi_1']['peer'] ]
-node.default['keepalived']['instances']['vi_1']['track_script'] = node['masala_keepalived']['vi_1']['track_script']
-# FIXME: wrapped cookbook does not pass this along
-#node.default['keepalived']['instances']['vi_1']['unicast_src_ip'] = primary_ip
-
-# add second instance vi_2 config if specced, same as above for vi_1
-if ! node['masala_keepalived']['vi_2'].nil?
-  node.default['keepalived']['instances']['vi_2']['state'] = node['masala_keepalived']['state']
-  node.default['keepalived']['instances']['vi_2']['priority'] = node['masala_keepalived']['priority']
-  node.default['keepalived']['instances']['vi_2']['advert_int'] = node['masala_keepalived']['advert_int']
-  node.default['keepalived']['instances']['vi_2']['nopreempt'] = node['masala_keepalived']['nopreempt']
-  node.default['keepalived']['instances']['vi_2']['auth_type'] = node['masala_keepalived']['auth_type']
-  node.default['keepalived']['instances']['vi_2']['auth_pass'] = node['masala_keepalived']['auth_pass']
-  node.default['keepalived']['instances']['vi_2']['virtual_router_id'] = node['masala_keepalived']['vi_2']['virtual_router_id']
-  node.default['keepalived']['instances']['vi_2']['interface'] = node['masala_keepalived']['vi_2']['interface']
-  node.default['keepalived']['instances']['vi_2']['ip_addresses'] = node['masala_keepalived']['vi_2']['vip']
-  node.default['keepalived']['instances']['vi_2']['unicast_peer'] = [ node['masala_keepalived']['vi_2']['peer'] ]
-  node.default['keepalived']['instances']['vi_2']['track_script'] = node['masala_keepalived']['vi_2']['track_script']
-
-  # Also create a VRRP sync group encapsulating both interfaces
-  node.default['keepalived']['sync_groups'] = {
-    'vg_1' => {
-      'instances' => ['vi_1', 'vi_2'],
-      'options' => ['global_tracking']
-    }
-  }
-else
-  # for since interface, still create a sync group of the one interface
-  node.default['keepalived']['sync_groups'] = {
-    'vg_1' => {
-      'instances' => ['vi_1'],
-      'options' => ['global_tracking']
-    }
-  }
-end
-
-# add helper for aws case to config (installed below)
-if node['masala_keepalived']['aws']
-  node.default['keepalived']['instances']['vi_1']['notify_master'] = "/etc/keepalived/master-aws.sh #{node['masala_keepalived']['vi_1']['interface']} #{node['masala_keepalived']['vi_1']['vip']}"
-  if ! node['masala_keepalived']['vi_2'].nil?
-    cmd = "/etc/keepalived/master-aws.sh #{node['masala_keepalived']['vi_2']['interface']} #{node['masala_keepalived']['vi_2']['vip']}"
-    # we only support eip on a secondary interface
-    if node['masala_keepalived']['vi_2'].has_key?('eip')
-      cmd += " #{node['masala_keepalived']['vi_2']['eip']}"
-      # for the eip to work, we must also force the gateway
-      cmd += " #{node['masala_keepalived']['vi_2']['gateway']}"
+# accumulate interfaces for sync group
+sync_members = []
+["vi_1", "vi_2", "vi_3"].each do |vi|
+  if ! node['masala_keepalived'][vi].nil?
+    # the following attributes are made to be consistent for all instances within
+    node.default['keepalived']['instances'][vi]['state'] = node['masala_keepalived']['state']
+    node.default['keepalived']['instances'][vi]['priority'] = node['masala_keepalived']['priority']
+    node.default['keepalived']['instances'][vi]['advert_int'] = node['masala_keepalived']['advert_int']
+    node.default['keepalived']['instances'][vi]['nopreempt'] = node['masala_keepalived']['nopreempt']
+    node.default['keepalived']['instances'][vi]['auth_type'] = node['masala_keepalived']['auth_type']
+    node.default['keepalived']['instances'][vi]['auth_pass'] = node['masala_keepalived']['auth_pass']
+    # the rest vary per instance
+    node.default['keepalived']['instances'][vi]['virtual_router_id'] = node['masala_keepalived'][vi]['virtual_router_id']
+    node.default['keepalived']['instances'][vi]['interface'] = node['masala_keepalived'][vi]['interface']
+    node.default['keepalived']['instances'][vi]['ip_addresses'] = node['masala_keepalived'][vi]['vip']
+    node.default['keepalived']['instances'][vi]['unicast_peer'] = [ node['masala_keepalived'][vi]['peer'] ]
+    node.default['keepalived']['instances'][vi]['track_script'] = node['masala_keepalived'][vi]['track_script']
+    # add to group
+    sync_members << vi
+    # check for AWS support
+    if node['masala_keepalived']['aws']
+      cmd = "/etc/keepalived/master-aws.sh #{node['masala_keepalived'][vi]['interface']} #{node['masala_keepalived'][vi]['vip']}"
+      if node['masala_keepalived'][vi].has_key?('eip') and node['masala_keepalived'][vi].has_key?('gateway')
+        if vi != "vi_1"
+          cmd += " #{node['masala_keepalived'][vi]['eip']}"
+          # for the eip to work, we must also force the gateway
+          cmd += " #{node['masala_keepalived'][vi]['gateway']}"
+	else
+          raise "eip not supported on primary interface"
+        end
+      end
+      node.default['keepalived']['instances'][vi]['notify_master'] = cmd
     end
-    node.default['keepalived']['instances']['vi_2']['notify_master'] = cmd
+  else
+    if vi == "vi_1"
+      raise "vi_1 virtual interface must exist in configuration"
+    end
   end
 end
 
+# Add accumulated sync members to group
+node.default['keepalived']['sync_groups'] = {
+  'vg_1' => {
+    'instances' => sync_members,
+    'options' => ['global_tracking']
+  }
+}
+
+# add notify helper for aws support
 if node['masala_keepalived']['aws']
   cookbook_file '/etc/keepalived/master-aws.sh' do
     source 'master-aws.sh'

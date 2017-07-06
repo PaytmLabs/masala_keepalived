@@ -19,6 +19,9 @@ default['masala_keepalived']['vi_1']['interface'] = node['system']['primary_inte
 # no secondary by default, same structure as above
 default['masala_keepalived']['vi_2'] = nil
 
+# no secondary by default, same structure as above
+default['masala_keepalived']['vi_3'] = nil
+
 # defaults we set in the wrapped cookbook
 # the default check script
 default['keepalived']['check_scripts']['chk_init']['script'] = 'killall -0 init'
