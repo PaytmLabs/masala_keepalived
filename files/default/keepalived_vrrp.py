@@ -372,7 +372,7 @@ class KeepalivedVrrpCheck(NetworkCheck):
           vr['STATUS_GUAGE'] = 0
 
         # We have all out info, collected and calculated, now it's time to submit
-        vr_tags = tags
+        vr_tags = list(tags)
         vr_tags += [
           'vrrp_router_name:{0}'.format(routerId),
           'vrrp_virtual_router_id:{0}'.format(vr['virtualRouterId']),
@@ -383,7 +383,12 @@ class KeepalivedVrrpCheck(NetworkCheck):
           'vrrp_desired_state:{0}'.format(vr['desiredState'])
         ]
         for vip in vr['vips']:
-           vr_tags += 'vrrp_virtual_ip:{0}'.format(vip)
+           vr_tags += [ 'vrrp_virtual_ip:{0}'.format(vip) ]
+        self.log.debug("tags: %s" % ",".join(vr_tags))
+        self.log.debug("state: %s" % VRRP_STATE_TO_INTEGER[vr['state']])
+        self.log.debug("base prio: %s" % vr['basePriority'])
+        self.log.debug("effective prio: %s" % vr['effectivePriority'])
+        self.log.debug("status: %s" % vr['STATUS_GUAGE'])
         self.gauge('keepalived.vrrp.state', VRRP_STATE_TO_INTEGER[vr['state']], vr_tags)
         self.gauge('keepalived.vrrp.priority.base', vr['basePriority'], vr_tags)
         self.gauge('keepalived.vrrp.priority.effective', vr['effectivePriority'], vr_tags)
